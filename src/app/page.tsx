@@ -67,11 +67,17 @@ export default function Home() {
     const _totalQueries = sourceData.reduce((total, source) => {
       return (
         total +
-        source.contracts.reduce(
-          (contractTotal, contract) =>
-            contractTotal + Number(contract?.interactions || 0),
-          0
-        )
+        source.contracts.reduce((contractTotal, contract) => {
+          // Correctly parse the interactions count as a number, defaulting to 0 if not present.
+          const _count = Number(contract?.interactions || 0)
+
+          // if (_count > 1000) {
+          //   console.log(`contractId: ${contract.contractId} _count: ${_count}`);
+          // }
+
+          // Return the updated total for contracts.
+          return contractTotal + _count
+        }, 0)
       )
     }, 0)
     setTotalQueries(_totalQueries)
@@ -237,12 +243,20 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      const newData = await Promise.all(
+      const promises = await Promise.allSettled(
         srcTxIds.map(async (srcTxId, index) => {
           const _data = await fetchDataByTxId(srcTxId)
           return _data
         })
       )
+      console.log("promises", promises)
+      const newData = []
+      for (const promise of promises) {
+        if (promise.status === "fulfilled") {
+          const data = promise.value
+          newData.push(data)
+        }
+      }   
       console.log("newData", newData)
       fetchDeployedDatabase(newData)
       fetchTotalQueries(newData)
