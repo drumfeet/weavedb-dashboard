@@ -71,9 +71,9 @@ export default function Home() {
           // Correctly parse the interactions count as a number, defaulting to 0 if not present.
           const _count = Number(contract?.interactions || 0)
 
-          // if (_count > 1000) {
-          //   console.log(`contractId: ${contract.contractId} _count: ${_count}`);
-          // }
+          if (_count > 1000) {
+            console.log(`contractId: ${contract.contractId} _count: ${_count}`);
+          }
 
           // Return the updated total for contracts.
           return contractTotal + _count
@@ -241,20 +241,55 @@ export default function Home() {
       }))
   }
 
+  const fetchSrcTxId = async (index: number) => {
+    try {
+      const srcTxId = srcTxIds[index]
+      const _data = await fetchDataByTxId(srcTxId)
+      return _data
+    } catch (e){
+      console.log("fetchSrcTxId", e)
+      return e
+    }
+  }
+
   const fetchData = async () => {
     try {
-      const promises = await Promise.allSettled(
-        srcTxIds.map(async (srcTxId, index) => {
-          const _data = await fetchDataByTxId(srcTxId)
-          return _data
-        })
-      )
-      console.log("promises", promises)
+      console.log("srcTxIds", srcTxIds)
+      const promises = await Promise.allSettled([
+        fetchSrcTxId(0),
+        fetchSrcTxId(1),
+        fetchSrcTxId(2),
+        fetchSrcTxId(3),
+        fetchSrcTxId(4),
+        fetchSrcTxId(5),
+        fetchSrcTxId(6),
+        fetchSrcTxId(7),
+        fetchSrcTxId(8),
+        fetchSrcTxId(9),
+        fetchSrcTxId(10),
+        fetchSrcTxId(11),
+        fetchSrcTxId(12),
+        fetchSrcTxId(13),
+        fetchSrcTxId(14),
+        fetchSrcTxId(15),
+        fetchSrcTxId(16),
+        fetchSrcTxId(17),
+        fetchSrcTxId(18),
+        fetchSrcTxId(19),
+        fetchSrcTxId(20),
+        fetchSrcTxId(21),
+        fetchSrcTxId(22),
+        fetchSrcTxId(23),
+        fetchSrcTxId(24),
+        fetchSrcTxId(25),
+        fetchSrcTxId(26),
+      ])
+      console.log("promises",promises)
+
       const newData = []
       for (const promise of promises) {
         if (promise.status === "fulfilled") {
-          const data = promise.value
-          newData.push(data)
+          if (promise?.value) newData.push(promise.value)
         }
       }   
       console.log("newData", newData)
