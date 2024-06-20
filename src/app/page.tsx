@@ -42,6 +42,8 @@ export default function Home() {
   const [monthlyGrowthRate, setMonthlyGrowthRate] = useState<
     MonthlyGrowthRateData[]
   >([])
+  const [srcData, setSrcData] = useState<Map<string, SourceData>>(new Map());
+  const [srcContracts, setSrcContracts] = useState(srcTxIds)
 
   const fetchDeployedDatabase = async (sourceData: SourceData[]) => {
     const _totalDeployment = sourceData.reduce((total, data) => {
@@ -252,61 +254,39 @@ export default function Home() {
     }
   }
 
-  const fetchData = async () => {
-    try {
-      console.log("srcTxIds", srcTxIds)
-      const promises = await Promise.allSettled([
-        fetchSrcTxId(0),
-        fetchSrcTxId(1),
-        fetchSrcTxId(2),
-        fetchSrcTxId(3),
-        fetchSrcTxId(4),
-        fetchSrcTxId(5),
-        fetchSrcTxId(6),
-        fetchSrcTxId(7),
-        fetchSrcTxId(8),
-        fetchSrcTxId(9),
-        fetchSrcTxId(10),
-        fetchSrcTxId(11),
-        fetchSrcTxId(12),
-        fetchSrcTxId(13),
-        fetchSrcTxId(14),
-        fetchSrcTxId(15),
-        fetchSrcTxId(16),
-        fetchSrcTxId(17),
-        fetchSrcTxId(18),
-        fetchSrcTxId(19),
-        fetchSrcTxId(20),
-        fetchSrcTxId(21),
-        fetchSrcTxId(22),
-        fetchSrcTxId(23),
-        fetchSrcTxId(24),
-        fetchSrcTxId(25),
-        fetchSrcTxId(26),
-      ])
-      console.log("promises",promises)
-
-      const newData = []
-      for (const promise of promises) {
-        if (promise.status === "fulfilled") {
-          if (promise?.value) newData.push(promise.value)
+  
+  useEffect(() => {
+    if (srcContracts.length > 0) {
+      ;(async () => {
+        try {
+          srcContracts.forEach(async (txId) => {
+            console.log("txId", txId)
+            const _item = await fetchDataByTxId(txId)
+            setSrcData((prevData) => new Map(prevData).set(txId, _item))
+            console.log("fetchDataByTxId _item", _item)
+          })
+        } catch (e) {
+          console.log(e)
         }
-      }   
-      console.log("newData", newData)
-      fetchDeployedDatabase(newData)
-      fetchTotalQueries(newData)
-      fetchDeploymentByMonth(newData)
-      fetchDeploymentPerYear(newData)
-      fetchQueriesByMonth(newData)
-      fetchDeploymentGrowthPerMonth(newData)
-    } catch (e) {
-      console.error(e)
+      })()
     }
-  }
+  }, [srcContracts])
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (srcData.size > 0) {
+      const orderedData = srcContracts
+        .map((txId) => srcData.get(txId))
+        .filter((item) => item !== undefined) as SourceData[]
+      console.log("orderedData", orderedData)
+      fetchDeployedDatabase(orderedData)
+      fetchDeployedDatabase(orderedData)
+      fetchTotalQueries(orderedData)
+      fetchDeploymentByMonth(orderedData)
+      fetchDeploymentPerYear(orderedData)
+      fetchQueriesByMonth(orderedData)
+      fetchDeploymentGrowthPerMonth(orderedData)
+    }
+  }, [srcData, srcContracts])
 
   return (
     <>
